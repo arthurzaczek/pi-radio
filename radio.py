@@ -1,5 +1,9 @@
-from time import sleep
+#!/usr/bin/python3
+
+import pygame,os,signal,random,re,json
 import RPi.GPIO as GPIO
+from os import walk
+from time import sleep
 
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(8, GPIO.IN, pull_up_down=GPIO.PUD_UP)
