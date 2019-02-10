@@ -10,13 +10,23 @@ def handler(signum, frame):
 
 signal.signal(signal.SIGHUP, handler)
 
+# init gpio
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(8, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(10, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(12, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+GPIO.setup(18, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(22, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+GPIO.setup(24, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+# init pygame
 pygame.init()
-os.putenv('SDL_VIDEODRIVER', 'dummy')
-pygame.display.init()
-screen = pygame.display.set_mode((1,1))
 
 tag_id = ""
-tagpipe = os.open('/tmp/rfidpipe', os.O_RDONLY | os.O_NONBLOCK)
+# tagpipe = os.open('/tmp/rfidpipe', os.O_RDONLY | os.O_NONBLOCK)
 
 SONG_END = pygame.USEREVENT + 1
 pygame.mixer.music.set_endevent(SONG_END)
@@ -37,30 +47,8 @@ print ("Found {} cards".format(len(cards)))
 # Used to manage how fast the screen updates
 clock = pygame.time.Clock()
 
-############# GPIO Init
 
-GPIO.setmode(GPIO.BOARD)
-GPIO.setup(8, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(10, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(12, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-GPIO.setup(18, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(22, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-GPIO.setup(24, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-GPIO.add_event_detect(8, GPIO.RISING, callback=button_event, bouncetime=50)
-GPIO.add_event_detect(10, GPIO.RISING, callback=button_event, bouncetime=50)
-GPIO.add_event_detect(12, GPIO.RISING, callback=button_event, bouncetime=50)
-GPIO.add_event_detect(16, GPIO.RISING, callback=button_event, bouncetime=50)
-
-GPIO.add_event_detect(18, GPIO.RISING, callback=button_event, bouncetime=50)
-GPIO.add_event_detect(22, GPIO.RISING, callback=button_event, bouncetime=50)
-
-GPIO.add_event_detect(24, GPIO.RISING, callback=button_event, bouncetime=50)
-
-# ----------------- main functions
+# ----------------- music functions
 
 def play_music():
     global now_playing
@@ -155,13 +143,24 @@ def button_event(channel):
         if GPIO.input(22) == False:
             print("On")
 
+############# GPIO Init
+GPIO.add_event_detect(8, GPIO.RISING, callback=button_event, bouncetime=50)
+GPIO.add_event_detect(10, GPIO.RISING, callback=button_event, bouncetime=50)
+GPIO.add_event_detect(12, GPIO.RISING, callback=button_event, bouncetime=50)
+GPIO.add_event_detect(16, GPIO.RISING, callback=button_event, bouncetime=50)
+
+GPIO.add_event_detect(18, GPIO.RISING, callback=button_event, bouncetime=50)
+GPIO.add_event_detect(22, GPIO.RISING, callback=button_event, bouncetime=50)
+
+GPIO.add_event_detect(24, GPIO.RISING, callback=button_event, bouncetime=50)
 
 # -------- Main Program Loop -----------
 #Loop until the user clicks the close button.
 done = False
 while done==False:
     try:
-        tag_id = os.read(tagpipe, 1024)
+        #tag_id = os.read(tagpipe, 1024)
+        tag_id = ""
     except OSError as err:
         print ("Error reading pipe: {}".format(err.errno))
     if len(tag_id) != 0:
