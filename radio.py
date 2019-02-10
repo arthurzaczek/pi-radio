@@ -123,24 +123,24 @@ def button_event(channel):
     # print("channel: {}".format(channel))
     if GPIO.input(8) == False:
         print("Stop")
-		if (now_playing != -1):
+        if (now_playing != -1):
             stop_music()
 
     if GPIO.input(10) == False:
         print("Play")
-		if (now_playing == -1):
-			music_counter = 0
-			playlist = music
-			play_music()
+        if (now_playing == -1):
+            music_counter = 0
+            playlist = music
+            play_music()
 
     if GPIO.input(12) == False:
         print("Next")
-		music_counter = 0
+        music_counter = 0
         play_music_next()
 
     if GPIO.input(16) == False:
         print("Prev")
-		music_counter = 0
+        music_counter = 0
         play_music_prev()
 
     if GPIO.input(18) == False:
@@ -151,7 +151,7 @@ def button_event(channel):
     if channel == 22:
         if GPIO.input(22) == True:
             print("Off")
-			stop_music()
+            stop_music()
         if GPIO.input(22) == False:
             print("On")
 
