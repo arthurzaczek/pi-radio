@@ -5,6 +5,40 @@ import RPi.GPIO as GPIO
 from os import walk
 from time import sleep
 
+def handler(signum, frame):
+    print ("Got a {} signal. Doing nothing".format(signum))
+
+signal.signal(signal.SIGHUP, handler)
+
+pygame.init()
+os.putenv('SDL_VIDEODRIVER', 'dummy')
+pygame.display.init()
+screen = pygame.display.set_mode((1,1))
+
+tag_id = ""
+tagpipe = os.open('/tmp/rfidpipe', os.O_RDONLY | os.O_NONBLOCK)
+
+SONG_END = pygame.USEREVENT + 1
+pygame.mixer.music.set_endevent(SONG_END)
+
+pygame.mixer.init()
+
+current_music_idx = 0
+now_playing = -1
+music_counter = 0
+music = [os.path.join(r,file) for r,d,f in os.walk("/mnt/music") for file in f]
+random.shuffle(music)
+print ("Found {} music file".format(len(music)))
+playlist = music
+
+cards = json.load(open('/mnt/music/cards.json'))
+print ("Found {} cards".format(len(cards)))
+
+# Used to manage how fast the screen updates
+clock = pygame.time.Clock()
+
+############# GPIO Init
+
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(8, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(10, GPIO.IN, pull_up_down=GPIO.PUD_UP)
