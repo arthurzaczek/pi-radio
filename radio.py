@@ -21,7 +21,6 @@ SONG_END = pygame.USEREVENT + 1
 
 current_music_idx = 0
 now_playing = -1
-music_counter = 0
 
 music = [os.path.join(r,file) for r,d,f in os.walk(music_folder) for file in f]
 random.shuffle(music)
@@ -57,7 +56,6 @@ def init_gpio():
 # ----------------- music functions
 def play_music():
     global now_playing
-    global music_counter
     try:
         print ("Playing {} songs".format(len(playlist)))
         pygame.mixer.music.load(playlist[current_music_idx])
@@ -89,7 +87,6 @@ def stop_music():
 def play_music_next():
     global now_playing
     global current_music_idx
-    global music_counter
     try:
         current_music_idx += 1
         current_music_idx = current_music_idx % len(playlist)
@@ -102,7 +99,6 @@ def play_music_next():
 def play_music_prev():
     global now_playing
     global current_music_idx
-    global music_counter
     try:
         current_music_idx -= 1
         if (current_music_idx < 0):
@@ -123,18 +119,15 @@ def button_event(channel):
     if GPIO.input(10) == False:
         print("Play")
         if (now_playing == -1):
-            music_counter = 0
             playlist = music
             play_music()
 
     if GPIO.input(12) == False:
         print("Next")
-        music_counter = 0
         play_music_next()
 
     if GPIO.input(16) == False:
         print("Prev")
-        music_counter = 0
         play_music_prev()
 
     if GPIO.input(18) == False:
@@ -159,6 +152,8 @@ def main():
 
     clock = pygame.time.Clock()
     
+    print("Running radio")
+    
     # -------- Main Program Loop -----------
     #Loop until the user clicks the close button.
     done = False
@@ -167,10 +162,18 @@ def main():
             tag_id = os.read(tagpipe, 1024)
         except OSError as err:
             print ("Error reading pipe: {}".format(err.errno))
+        
         if len(tag_id) != 0:
             tag_id = tag_id.decode().strip()
             print ("Tag: ", tag_id)
             play_music_card()
+            
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                done = True
+            if event.type == SONG_END:
+                play_music_next()
+            
         # Limit to 20 frames per second
         clock.tick(20)
 
