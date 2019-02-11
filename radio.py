@@ -26,22 +26,23 @@ GPIO.setup(24, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 pygame.init()
 
 tag_id = ""
-# tagpipe = os.open('/tmp/rfidpipe', os.O_RDONLY | os.O_NONBLOCK)
+tagpipe = os.open('/tmp/rfidpipe', os.O_RDONLY | os.O_NONBLOCK)
 
 SONG_END = pygame.USEREVENT + 1
 pygame.mixer.music.set_endevent(SONG_END)
 
 pygame.mixer.init()
 
+music_folder = "/mnt/music/"
 current_music_idx = 0
 now_playing = -1
 music_counter = 0
-music = [os.path.join(r,file) for r,d,f in os.walk("/mnt/music") for file in f]
+music = [os.path.join(r,file) for r,d,f in os.walk(music_folder) for file in f]
 random.shuffle(music)
 print ("Found {} music file".format(len(music)))
 playlist = music
 
-cards = json.load(open('/mnt/music/cards.json'))
+cards = json.load(open(music_folder + "cards.json"))
 print ("Found {} cards".format(len(cards)))
 
 # Used to manage how fast the screen updates
@@ -54,6 +55,7 @@ def play_music():
     global now_playing
     global music_counter
     try:
+        print ("Playing {} songs".format(len(playlist)))
         pygame.mixer.music.load(playlist[current_music_idx])
         pygame.mixer.music.play()
         now_playing = current_music_idx
@@ -67,10 +69,10 @@ def play_music_card():
     if (tag_id not in cards): 
         return
     if ('file' in cards[tag_id]):
-        playlist = [ cards[tag_id]['file'] ]
+        playlist = [ music_folder + cards[tag_id]['file'] ]
     if ('folder' in cards[tag_id]):
-        print ("playing folder {}".format(cards[tag_id]['folder']))
-        playlist = [os.path.join(r,file) for r,d,f in os.walk(cards[tag_id]['folder']) for file in f]
+        print ("playing folder {}".format(music_folder + cards[tag_id]['folder']))
+        playlist = [os.path.join(r,file) for r,d,f in os.walk(music_folder + cards[tag_id]['folder']) for file in f]
         playlist.sort()
         current_music_idx = 0
     play_music()
@@ -159,8 +161,7 @@ GPIO.add_event_detect(24, GPIO.RISING, callback=button_event, bouncetime=50)
 done = False
 while done==False:
     try:
-        #tag_id = os.read(tagpipe, 1024)
-        tag_id = ""
+        tag_id = os.read(tagpipe, 1024)
     except OSError as err:
         print ("Error reading pipe: {}".format(err.errno))
     if len(tag_id) != 0:
