@@ -15,20 +15,25 @@ music_folder = "/mnt/music/"
 
 # ----------------- Init globals
 tag_id = ""
-tagpipe = os.open('/tmp/rfidpipe', os.O_RDONLY | os.O_NONBLOCK)
 
 SONG_END = pygame.USEREVENT + 1
 
 current_music_idx = 0
 now_playing = -1
 
-music = [os.path.join(r,file) for r,d,f in os.walk(music_folder) for file in f]
-random.shuffle(music)
-print ("Found {} music file".format(len(music)))
-playlist = music
+music = []
+playlist = []
+cards = []
 
-cards = json.load(open(music_folder + "cards.json"))
-print ("Found {} cards".format(len(cards)))
+def load_music():
+	music = [os.path.join(r,file) for r,d,f in os.walk(music_folder) for file in f]
+	random.shuffle(music)
+	print ("Found {} music file".format(len(music)))
+	playlist = music
+
+	cards = json.load(open(music_folder + "cards.json"))
+	print ("Found {} cards".format(len(cards)))
+
 
 # ----------------- GPIO Init
 def init_gpio():
@@ -144,6 +149,9 @@ def button_event(channel):
 
 def main():
     global tag_id
+	
+	load_music()
+	
     pygame.init()
     pygame.mixer.music.set_endevent(SONG_END)
     pygame.mixer.init()
@@ -151,6 +159,7 @@ def main():
     init_gpio()
 
     clock = pygame.time.Clock()
+	tagpipe = os.open('/tmp/rfidpipe', os.O_RDONLY | os.O_NONBLOCK)
     
     print("Running radio")
     
