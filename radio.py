@@ -26,6 +26,10 @@ playlist = []
 cards = []
 
 def load_music():
+	global music
+	global playlist
+	global cards
+	
     music = [os.path.join(r,file) for r,d,f in os.walk(music_folder) for file in f]
     random.shuffle(music)
     print ("Found {} music file".format(len(music)))
