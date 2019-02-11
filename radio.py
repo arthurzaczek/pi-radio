@@ -157,6 +157,11 @@ def main():
     load_music()
     
     pygame.init()
+    
+    os.putenv('SDL_VIDEODRIVER', 'dummy')
+    pygame.display.init()
+    screen = pygame.display.set_mode((1,1))
+
     pygame.mixer.music.set_endevent(SONG_END)
     pygame.mixer.init()
     
@@ -181,10 +186,9 @@ def main():
             print ("Tag: ", tag_id)
             play_music_card()
             
-        if pygame.mixer.get_busy() != None:
-            for event in pygame.event.get():
-                if event.type == SONG_END:
-                    play_music_next()
+        for event in pygame.event.get():
+            if event.type == SONG_END:
+                play_music_next()
             
         # Limit to 20 frames per second
         clock.tick(20)
