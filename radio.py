@@ -10,33 +10,19 @@ def handler(signum, frame):
 
 signal.signal(signal.SIGHUP, handler)
 
-# init gpio
-GPIO.setmode(GPIO.BOARD)
-GPIO.setup(8, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(10, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(12, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+# ----------------- Init constants
+music_folder = "/mnt/music/"
 
-GPIO.setup(18, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(22, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-GPIO.setup(24, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-# init pygame
-pygame.init()
-
+# ----------------- Init globals
 tag_id = ""
 tagpipe = os.open('/tmp/rfidpipe', os.O_RDONLY | os.O_NONBLOCK)
 
 SONG_END = pygame.USEREVENT + 1
-pygame.mixer.music.set_endevent(SONG_END)
 
-pygame.mixer.init()
-
-music_folder = "/mnt/music/"
 current_music_idx = 0
 now_playing = -1
 music_counter = 0
+
 music = [os.path.join(r,file) for r,d,f in os.walk(music_folder) for file in f]
 random.shuffle(music)
 print ("Found {} music file".format(len(music)))
@@ -45,12 +31,30 @@ playlist = music
 cards = json.load(open(music_folder + "cards.json"))
 print ("Found {} cards".format(len(cards)))
 
-# Used to manage how fast the screen updates
-clock = pygame.time.Clock()
+# ----------------- GPIO Init
+def init_gpio():
+	GPIO.setmode(GPIO.BOARD)
+	GPIO.setup(8, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+	GPIO.setup(10, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+	GPIO.setup(12, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+	GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+	GPIO.setup(18, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+	GPIO.setup(22, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+	GPIO.setup(24, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+	GPIO.add_event_detect(8, GPIO.RISING, callback=button_event, bouncetime=50)
+	GPIO.add_event_detect(10, GPIO.RISING, callback=button_event, bouncetime=50)
+	GPIO.add_event_detect(12, GPIO.RISING, callback=button_event, bouncetime=50)
+	GPIO.add_event_detect(16, GPIO.RISING, callback=button_event, bouncetime=50)
+
+	GPIO.add_event_detect(18, GPIO.RISING, callback=button_event, bouncetime=50)
+	GPIO.add_event_detect(22, GPIO.RISING, callback=button_event, bouncetime=50)
+
+	GPIO.add_event_detect(24, GPIO.RISING, callback=button_event, bouncetime=50)
 
 
 # ----------------- music functions
-
 def play_music():
     global now_playing
     global music_counter
@@ -145,35 +149,32 @@ def button_event(channel):
         if GPIO.input(22) == False:
             print("On")
 
-############# GPIO Init
-GPIO.add_event_detect(8, GPIO.RISING, callback=button_event, bouncetime=50)
-GPIO.add_event_detect(10, GPIO.RISING, callback=button_event, bouncetime=50)
-GPIO.add_event_detect(12, GPIO.RISING, callback=button_event, bouncetime=50)
-GPIO.add_event_detect(16, GPIO.RISING, callback=button_event, bouncetime=50)
+def main():
+	pygame.init()
+	pygame.mixer.music.set_endevent(SONG_END)
+	pygame.mixer.init()
+	
+	init_gpio()
 
-GPIO.add_event_detect(18, GPIO.RISING, callback=button_event, bouncetime=50)
-GPIO.add_event_detect(22, GPIO.RISING, callback=button_event, bouncetime=50)
+	clock = pygame.time.Clock()
+	
+	# -------- Main Program Loop -----------
+	#Loop until the user clicks the close button.
+	done = False
+	while done==False:
+		try:
+			tag_id = os.read(tagpipe, 1024)
+		except OSError as err:
+			print ("Error reading pipe: {}".format(err.errno))
+		if len(tag_id) != 0:
+			tag_id = tag_id.decode().strip()
+			print ("Tag: ", tag_id)
+			play_music_card()
+		# Limit to 20 frames per second
+		clock.tick(20)
 
-GPIO.add_event_detect(24, GPIO.RISING, callback=button_event, bouncetime=50)
+	os.close(tagpipe)
+	pygame.quit ()
 
-# -------- Main Program Loop -----------
-#Loop until the user clicks the close button.
-done = False
-while done==False:
-    try:
-        tag_id = os.read(tagpipe, 1024)
-    except OSError as err:
-        print ("Error reading pipe: {}".format(err.errno))
-    if len(tag_id) != 0:
-        tag_id = tag_id.decode().strip()
-        print ("Tag: ", tag_id)
-        play_music_card()
-    # Limit to 20 frames per second
-    clock.tick(20)
-
-
-os.close(tagpipe)
-# Close the window and quit.
-# If you forget this line, the program will 'hang'
-# on exit if running from IDLE.
-pygame.quit ()
+if __name__ == '__main__':
+	main()
