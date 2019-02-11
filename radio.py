@@ -181,11 +181,10 @@ def main():
             print ("Tag: ", tag_id)
             play_music_card()
             
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                done = True
-            if event.type == SONG_END:
-                play_music_next()
+        if pygame.mixer.get_busy() != None:
+            for event in pygame.event.get():
+                if event.type == SONG_END:
+                    play_music_next()
             
         # Limit to 20 frames per second
         clock.tick(20)
