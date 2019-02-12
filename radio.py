@@ -10,6 +10,7 @@ def handler(signum, frame):
 
 signal.signal(signal.SIGHUP, handler)
 
+
 # ----------------- Init constants
 music_folder = "/mnt/music/"
 
@@ -150,17 +151,15 @@ def button_event(channel):
             print("On")
 
 def main():
-    load_music()
-    
     pygame.init()
-    
     os.putenv('SDL_VIDEODRIVER', 'dummy')
     pygame.display.init()
     screen = pygame.display.set_mode((1,1))
-
+    
     pygame.mixer.music.set_endevent(SONG_END)
     pygame.mixer.init()
     
+    load_music()
     init_gpio()
 
     clock = pygame.time.Clock()
