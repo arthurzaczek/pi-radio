@@ -14,8 +14,6 @@ signal.signal(signal.SIGHUP, handler)
 music_folder = "/mnt/music/"
 
 # ----------------- Init globals
-tag_id = ""
-
 SONG_END = pygame.USEREVENT + 1
 
 current_music_idx = 0
@@ -73,7 +71,7 @@ def play_music():
     except Exception as inst:
         print(inst)
 
-def play_music_card():
+def play_music_card(tag_id):
     global playlist
     global cards
     global current_music_idx
@@ -152,8 +150,6 @@ def button_event(channel):
             print("On")
 
 def main():
-    global tag_id
-    
     load_music()
     
     pygame.init()
@@ -175,6 +171,7 @@ def main():
     # -------- Main Program Loop -----------
     #Loop until the user clicks the close button.
     done = False
+    tag_id = ""
     while done==False:
         try:
             tag_id = os.read(tagpipe, 1024)
@@ -184,7 +181,7 @@ def main():
         if len(tag_id) != 0:
             tag_id = tag_id.decode().strip()
             print ("Tag: ", tag_id)
-            play_music_card()
+            play_music_card(tag_id)
             
         for event in pygame.event.get():
             if event.type == pygame.QUIT: # If user clicked close
