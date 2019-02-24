@@ -23,6 +23,7 @@ now_playing = -1
 music = []
 playlist = []
 cards = []
+volume = 0.8
 
 def load_music():
     global music
@@ -118,6 +119,7 @@ def play_music_prev():
         print("Error prev")
 
 def button_event(channel):
+    global volume
     # print("channel: {}".format(channel))
     if GPIO.input(8) == False:
         print("Stop")
@@ -140,8 +142,17 @@ def button_event(channel):
 
     if GPIO.input(18) == False:
         print("Louder")
+        volume += 0.1
+        if(volume > 1.0):
+            volume = 1
+        pygame.mixer.music.set_volume(volume)
+
     if GPIO.input(24) == False:
         print("Quieter")
+        volume -= 0.1
+        if(volume < 0): 
+            volume = 0
+        pygame.mixer.music.set_volume(volume)
 
     if channel == 22:
         if GPIO.input(22) == True:
@@ -158,7 +169,8 @@ def main():
     
     pygame.mixer.music.set_endevent(SONG_END)
     pygame.mixer.init()
-    
+    pygame.mixer.music.set_volume(volume)
+
     load_music()
     init_gpio()
 
