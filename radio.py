@@ -2,6 +2,8 @@
 
 import pygame,os,signal,random,re,json
 import RPi.GPIO as GPIO
+import vlc
+import time
 from os import walk
 from time import sleep
 
@@ -24,6 +26,10 @@ music = []
 playlist = []
 cards = []
 volume = 0.8
+
+# ----------------- Init vlc
+vlc_instance = vlc.Instance('--input-repeat=-1', '--fullscreen', '-A', 'alsa,none', '--alsa-audio-device', 'default')
+vlc_player=vlc_instance.media_player_new()
 
 def load_music():
     global music
@@ -65,8 +71,10 @@ def init_gpio():
 # ----------------- music functions
 def play_music():
     global now_playing
+    global vlc_player
     try:
         print ("Playing {} songs".format(len(playlist)))
+        vlc_player.stop()
         pygame.mixer.music.load(playlist[current_music_idx])
         pygame.mixer.music.play()
         now_playing = current_music_idx
@@ -77,21 +85,40 @@ def play_music_card(tag_id):
     global playlist
     global cards
     global current_music_idx
+    global vlc_player
+    global vlc_instance
+
+    vlc_player.stop()
+
     if (tag_id not in cards):       
         return
     if ('file' in cards[tag_id]):
         playlist = [ music_folder + cards[tag_id]['file'] ]
+        current_music_idx = 0
     if ('folder' in cards[tag_id]):
         print ("playing folder {}".format(music_folder + cards[tag_id]['folder']))
         playlist = [os.path.join(r,file) for r,d,f in os.walk(music_folder + cards[tag_id]['folder']) for file in f]
         playlist.sort()
         current_music_idx = 0
+    if ('radio' in cards[tag_id]):
+        print ("playing radio {}".format(cards[tag_id]['radio']))
+        playlist = [ ]
+        current_music_idx = 0
+        url = cards[tag_id]['radio']
+        media=vlc_instance.media_new(url)
+        vlc_player.set_media(media)
+        vlc_player.play()
+        return
+
     play_music()
 
 def stop_music():
     global now_playing
-    pygame.mixer.music.stop()
-    now_playing = -1
+    global vlc_player
+    if (now_playing != -1):
+        pygame.mixer.music.stop()
+        now_playing = -1
+    vlc_player.stop()
 
 def play_music_next():
     global now_playing
@@ -120,11 +147,11 @@ def play_music_prev():
 
 def button_event(channel):
     global volume
+    global playlist
     # print("channel: {}".format(channel))
     if GPIO.input(8) == False:
         print("Stop")
-        if (now_playing != -1):
-            stop_music()
+        stop_music()
 
     if GPIO.input(10) == False:
         print("Play")
