@@ -1,9 +1,10 @@
 #!/usr/bin/python3
 
-import pygame,os,signal,random,re,json
+import os,signal,random,re,json
 import RPi.GPIO as GPIO
 from os import walk
 from time import sleep
+import subprocess
 
 def handler(signum, frame):
     print ("Got a {} signal. Doing nothing".format(signum))
@@ -15,29 +16,13 @@ signal.signal(signal.SIGHUP, handler)
 music_folder = "/mnt/music/"
 
 # ----------------- Init globals
-SONG_END = pygame.USEREVENT + 1
-
-current_music_idx = 0
-now_playing = -1
-
-music = []
-playlist = []
 cards = []
-volume = 0.8
 
 def load_music():
-    global music
-    global playlist
     global cards
     
-    music = [os.path.join(r,file) for r,d,f in os.walk(music_folder) for file in f]
-    random.shuffle(music)
-    print ("Found {} music file".format(len(music)))
-    playlist = music
-
     cards = json.load(open(music_folder + "cards.json"))
     print ("Found {} cards".format(len(cards)))
-
 
 # ----------------- GPIO Init
 def init_gpio():
@@ -64,73 +49,46 @@ def init_gpio():
 
 # ----------------- music functions
 def play_music():
-    global now_playing
-    try:
-        print ("Playing {} songs".format(len(playlist)))
-        pygame.mixer.music.load(playlist[current_music_idx])
-        pygame.mixer.music.play()
-        now_playing = current_music_idx
-    except Exception as inst:
-        print(inst)
+    subprocess.call( "mpc play", shell=True)
 
 def play_music_card(tag_id):
-    global playlist
     global cards
-    global current_music_idx
     if (tag_id not in cards):       
         return
+
+    subprocess.call( "mpc clear", shell=True)
+
     if ('file' in cards[tag_id]):
-        playlist = [ music_folder + cards[tag_id]['file'] ]
+        print ("playing file {}".format(cards[tag_id]['folder']))
+        subprocess.call("mpc add " + cards[tag_id]['file'], shell=True)
     if ('folder' in cards[tag_id]):
-        print ("playing folder {}".format(music_folder + cards[tag_id]['folder']))
-        playlist = [os.path.join(r,file) for r,d,f in os.walk(music_folder + cards[tag_id]['folder']) for file in f]
-        playlist.sort()
-        current_music_idx = 0
+        print ("playing folder {}".format(cards[tag_id]['folder']))
+        subprocess.call("mpc add " + cards[tag_id]['folder'], shell=True)
+    if ('radio' in cards[tag_id]):
+        print ("playing radio {}".format(cards[tag_id]['radio']))
+        subprocess.call("mpc load " + cards[tag_id]['radio'], shell=True)
+
     play_music()
 
 def stop_music():
-    global now_playing
-    pygame.mixer.music.stop()
-    now_playing = -1
+    subprocess.call( "mpc stop", shell=True)
 
 def play_music_next():
-    global now_playing
-    global current_music_idx
-    try:
-        current_music_idx += 1
-        current_music_idx = current_music_idx % len(playlist)
-        pygame.mixer.music.load(playlist[current_music_idx])
-        pygame.mixer.music.play()
-        now_playing = current_music_idx
-    except:
-        play_music_next()
+    subprocess.call( "mpc next", shell=True)
 
 def play_music_prev():
-    global now_playing
-    global current_music_idx
-    try:
-        current_music_idx -= 1
-        if (current_music_idx < 0):
-            current_music_idx = len(playlist) - 1
-        pygame.mixer.music.load(playlist[current_music_idx])
-        pygame.mixer.music.play()
-        now_playing = current_music_idx
-    except:
-        print("Error prev")
+    subprocess.call( "mpc prev", shell=True)
 
 def button_event(channel):
     global volume
     # print("channel: {}".format(channel))
     if GPIO.input(8) == False:
         print("Stop")
-        if (now_playing != -1):
-            stop_music()
+        stop_music()
 
     if GPIO.input(10) == False:
         print("Play")
-        if (now_playing == -1):
-            playlist = music
-            play_music()
+        play_music()
 
     if GPIO.input(12) == False:
         print("Next")
@@ -142,17 +100,11 @@ def button_event(channel):
 
     if GPIO.input(18) == False:
         print("Louder")
-        volume += 0.1
-        if(volume > 1.0):
-            volume = 1
-        pygame.mixer.music.set_volume(volume)
+        subprocess.call( "mpc volume +5", shell=True)
 
     if GPIO.input(24) == False:
         print("Quieter")
-        volume -= 0.1
-        if(volume < 0): 
-            volume = 0
-        pygame.mixer.music.set_volume(volume)
+        subprocess.call( "mpc volume -5", shell=True)
 
     if channel == 22:
         if GPIO.input(22) == True:
@@ -162,21 +114,13 @@ def button_event(channel):
             print("On")
 
 def main():
-    pygame.init()
-    os.putenv('SDL_VIDEODRIVER', 'dummy')
-    pygame.display.init()
-    screen = pygame.display.set_mode((1,1))
-    
-    pygame.mixer.music.set_endevent(SONG_END)
-    pygame.mixer.init()
-    pygame.mixer.music.set_volume(volume)
 
     load_music()
     init_gpio()
 
     clock = pygame.time.Clock()
     tagpipe = os.open('/tmp/rfidpipe', os.O_RDONLY | os.O_NONBLOCK)
-    
+
     print("Running radio")
     
     # -------- Main Program Loop -----------
@@ -193,18 +137,11 @@ def main():
             tag_id = tag_id.decode().strip()
             print ("Tag: ", tag_id)
             play_music_card(tag_id)
-            
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT: # If user clicked close
-                done=True # Flag that we are done so we exit this loop
-            if event.type == SONG_END:
-                play_music_next()
-            
+
         # Limit to 20 frames per second
         clock.tick(20)
 
     os.close(tagpipe)
-    pygame.quit ()
 
 if __name__ == '__main__':
     main()
