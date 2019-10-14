@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 import os,signal,random,re,json
-import RPi.GPIO as GPIO
 from os import walk
 from time import sleep
 import subprocess
@@ -23,29 +22,6 @@ def load_music():
     
     cards = json.load(open(music_folder + "cards.json"))
     print ("Found {} cards".format(len(cards)))
-
-# ----------------- GPIO Init
-def init_gpio():
-    GPIO.setmode(GPIO.BOARD)
-    GPIO.setup(8, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(10, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(12, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-    GPIO.setup(18, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(22, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-    GPIO.setup(24, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.add_event_detect(8, GPIO.RISING, callback=button_event, bouncetime=50)
-    GPIO.add_event_detect(10, GPIO.RISING, callback=button_event, bouncetime=50)
-    GPIO.add_event_detect(12, GPIO.RISING, callback=button_event, bouncetime=50)
-    GPIO.add_event_detect(16, GPIO.RISING, callback=button_event, bouncetime=50)
-
-    GPIO.add_event_detect(18, GPIO.RISING, callback=button_event, bouncetime=50)
-    GPIO.add_event_detect(22, GPIO.RISING, callback=button_event, bouncetime=50)
-
-    GPIO.add_event_detect(24, GPIO.RISING, callback=button_event, bouncetime=50)
-
 
 # ----------------- music functions
 def play_music():
@@ -79,46 +55,10 @@ def play_music_next():
 def play_music_prev():
     subprocess.call( "mpc prev", shell=True)
 
-def button_event(channel):
-    global volume
-    # print("channel: {}".format(channel))
-    if GPIO.input(8) == False:
-        print("Stop")
-        stop_music()
-
-    if GPIO.input(10) == False:
-        print("Play")
-        play_music()
-
-    if GPIO.input(12) == False:
-        print("Next")
-        play_music_next()
-
-    if GPIO.input(16) == False:
-        print("Prev")
-        play_music_prev()
-
-    if GPIO.input(18) == False:
-        print("Louder")
-        subprocess.call( "mpc volume +5", shell=True)
-
-    if GPIO.input(24) == False:
-        print("Quieter")
-        subprocess.call( "mpc volume -5", shell=True)
-
-    if channel == 22:
-        if GPIO.input(22) == True:
-            print("Off")
-            stop_music()
-        if GPIO.input(22) == False:
-            print("On")
-
 def main():
 
     load_music()
-    init_gpio()
 
-    clock = pygame.time.Clock()
     tagpipe = os.open('/tmp/rfidpipe', os.O_RDONLY | os.O_NONBLOCK)
 
     print("Running radio")
@@ -139,7 +79,7 @@ def main():
             play_music_card(tag_id)
 
         # Limit to 20 frames per second
-        clock.tick(20)
+        sleep(20)
 
     os.close(tagpipe)
 
