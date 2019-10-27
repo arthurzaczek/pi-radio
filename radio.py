@@ -36,13 +36,13 @@ def play_music_card(tag_id):
 
     if ('file' in cards[tag_id]):
         print ("playing file {}".format(cards[tag_id]['folder']))
-        subprocess.call("mpc add " + cards[tag_id]['file'], shell=True)
+        subprocess.call(["mpc", "add", cards[tag_id]['file']])
     if ('folder' in cards[tag_id]):
         print ("playing folder {}".format(cards[tag_id]['folder']))
-        subprocess.call("mpc add " + cards[tag_id]['folder'], shell=True)
+        subprocess.call(["mpc",  "add", cards[tag_id]['folder']])
     if ('radio' in cards[tag_id]):
         print ("playing radio {}".format(cards[tag_id]['radio']))
-        subprocess.call("mpc load " + cards[tag_id]['radio'], shell=True)
+        subprocess.call(["mpc", "load", cards[tag_id]['radio']])
 
     play_music()
 
@@ -59,7 +59,7 @@ def main():
 
     load_music()
 
-    tagpipe = os.open('/tmp/rfidpipe', os.O_RDONLY | os.O_NONBLOCK)
+    tagpipe = open('/tmp/rfidpipe', 'r')
 
     print("Running radio")
     
@@ -69,12 +69,12 @@ def main():
     tag_id = ""
     while done==False:
         try:
-            tag_id = os.read(tagpipe, 1024)
+            tag_id = tagpipe.readline()
         except OSError as err:
             print ("Error reading pipe: {}".format(err.errno))
         
         if len(tag_id) != 0:
-            tag_id = tag_id.decode().strip()
+            tag_id = tag_id.strip()
             print ("Tag: ", tag_id)
             play_music_card(tag_id)
 
