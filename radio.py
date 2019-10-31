@@ -13,6 +13,7 @@ signal.signal(signal.SIGHUP, handler)
 
 
 # ----------------- Init constants
+# music_folder = "/var/music/"
 music_folder = "/mnt/music/"
 
 # ----------------- Init globals
@@ -60,13 +61,13 @@ def play_music_card(tag_id):
 
     if ('file' in cards[tag_id]):
         print ("playing file {}".format(cards[tag_id]['folder']))
-        subprocess.call("mpc add " + cards[tag_id]['file'], shell=True)
+        subprocess.call("mpc add \"{}\"".format(cards[tag_id]['file']), shell=True)
     if ('folder' in cards[tag_id]):
         print ("playing folder {}".format(cards[tag_id]['folder']))
-        subprocess.call("mpc add " + cards[tag_id]['folder'], shell=True)
+        subprocess.call("mpc add \"{}\"".format(cards[tag_id]['folder']), shell=True)
     if ('radio' in cards[tag_id]):
         print ("playing radio {}".format(cards[tag_id]['radio']))
-        subprocess.call("mpc load " + cards[tag_id]['radio'], shell=True)
+        subprocess.call("mpc load \"{}\"".format(cards[tag_id]['radio']), shell=True)
 
     play_music()
 
@@ -118,7 +119,6 @@ def main():
     load_music()
     init_gpio()
 
-    clock = pygame.time.Clock()
     tagpipe = os.open('/tmp/rfidpipe', os.O_RDONLY | os.O_NONBLOCK)
 
     print("Running radio")
@@ -138,8 +138,7 @@ def main():
             print ("Tag: ", tag_id)
             play_music_card(tag_id)
 
-        # Limit to 20 frames per second
-        clock.tick(20)
+        sleep(.020)
 
     os.close(tagpipe)
 
