@@ -61,7 +61,7 @@ def main():
 
     tagpipe = open('/tmp/rfidpipe', 'r')
 
-    print("Running radio")
+    print("Running radio", flush=True)
     
     # -------- Main Program Loop -----------
     #Loop until the user clicks the close button.
@@ -75,11 +75,11 @@ def main():
         
         if len(tag_id) != 0:
             tag_id = tag_id.strip()
-            print ("Tag: ", tag_id)
+            print ("Tag: ", tag_id, flush=True)
             play_music_card(tag_id)
 
         # Limit to 20 frames per second
-        sleep(20)
+        sleep(0.1)
 
     os.close(tagpipe)
 
