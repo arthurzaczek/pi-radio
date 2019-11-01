@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import os,signal,random,re,json
+import RPi.GPIO as GPIO
 from os import walk
 from time import sleep
 import subprocess
@@ -16,6 +17,33 @@ music_folder = "/mnt/music/"
 
 # ----------------- Init globals
 cards = []
+
+# ----------------- GPIO Init
+def init_gpio():
+    GPIO.setmode(GPIO.BOARD)
+
+    GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(20, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(21, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+    GPIO.add_event_detect(16, GPIO.RISING, callback=button_event, bouncetime=50)
+    GPIO.add_event_detect(20, GPIO.RISING, callback=button_event, bouncetime=50)
+    GPIO.add_event_detect(21, GPIO.RISING, callback=button_event, bouncetime=50)
+
+def button_event(channel):
+    global volume
+    # print("channel: {}".format(channel))
+    if GPIO.input(16) == False:
+        print("Stop")
+        stop_music()
+
+    if GPIO.input(20) == False:
+        print("Next")
+        play_music_next()
+
+    if GPIO.input(21) == False:
+        print("Prev")
+        play_music_prev()
 
 def load_music():
     global cards
@@ -58,6 +86,7 @@ def play_music_prev():
 def main():
 
     load_music()
+	init_gpio()
 
     tagpipe = open('/tmp/rfidpipe', 'r')
 
