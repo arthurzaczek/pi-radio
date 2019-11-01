@@ -22,26 +22,26 @@ cards = []
 def init_gpio():
     GPIO.setmode(GPIO.BOARD)
 
-    GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(20, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(21, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(36, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(38, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(40, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-    GPIO.add_event_detect(16, GPIO.RISING, callback=button_event, bouncetime=50)
-    GPIO.add_event_detect(20, GPIO.RISING, callback=button_event, bouncetime=50)
-    GPIO.add_event_detect(21, GPIO.RISING, callback=button_event, bouncetime=50)
+    GPIO.add_event_detect(36, GPIO.RISING, callback=button_event, bouncetime=50)
+    GPIO.add_event_detect(38, GPIO.RISING, callback=button_event, bouncetime=50)
+    GPIO.add_event_detect(40, GPIO.RISING, callback=button_event, bouncetime=50)
 
 def button_event(channel):
     global volume
     # print("channel: {}".format(channel))
-    if GPIO.input(16) == False:
+    if GPIO.input(38) == False:
         print("Stop")
         stop_music()
 
-    if GPIO.input(20) == False:
+    if GPIO.input(36) == False:
         print("Next")
         play_music_next()
 
-    if GPIO.input(21) == False:
+    if GPIO.input(40) == False:
         print("Prev")
         play_music_prev()
 
