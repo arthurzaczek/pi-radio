@@ -86,7 +86,7 @@ def play_music_prev():
 def main():
 
     load_music()
-	init_gpio()
+    init_gpio()
 
     tagpipe = open('/tmp/rfidpipe', 'r')
 
