@@ -107,7 +107,7 @@ def main():
             print ("Tag: ", tag_id, flush=True)
             play_music_card(tag_id)
 
-        # Limit to 20 frames per second
+        # do not heat tea
         sleep(0.1)
 
     os.close(tagpipe)
