@@ -54,7 +54,8 @@ def play_music():
 
 def play_music_card(tag_id):
     global cards
-    if (tag_id not in cards):       
+    if (tag_id not in cards):
+        print ('Card not found')
         return
 
     subprocess.call( "mpc clear", shell=True)
