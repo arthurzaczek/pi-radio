@@ -73,7 +73,7 @@ def play_music_card(tag_id):
     play_music()
 
 def stop_music():
-    subprocess.call( "mpc stop", shell=True)
+    subprocess.call( "mpc pause", shell=True)
 
 def play_music_next():
     subprocess.call( "mpc next", shell=True)
@@ -123,6 +123,7 @@ def main():
     tagpipe = os.open('/tmp/rfidpipe', os.O_RDONLY | os.O_NONBLOCK)
 
     print("Running radio")
+    subprocess.call("play -n synth .5 pl A2 pl G3 delay 0 .3", shell=True)
     
     # -------- Main Program Loop -----------
     #Loop until the user clicks the close button.
