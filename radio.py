@@ -13,8 +13,7 @@ signal.signal(signal.SIGHUP, handler)
 
 
 # ----------------- Init constants
-# music_folder = "/var/music/"
-music_folder = "/mnt/music/"
+music_folder = "/var/lib/mpd/music/KinderMusik/"
 
 # ----------------- Init globals
 cards = []
