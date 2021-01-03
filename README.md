@@ -4,18 +4,27 @@ A raspberry pi radio device
 
 ## Softwaresetup
 
-1) Clone this repository to your PI
+1) Install software (see below)
 
-2) Mount a share (samba) to `/mnt/music`
+2) Clone this repository to your PI
+
+3) Mount a share (samba) to `/mnt/music`
 
    e.g. samba (/etc/fstab)
 
        //my-nas/Multimedia/MP3/Kinder /mnt/music cifs  username=myuser,password=mypassword  0  0
 
-3) Then create 2 systemd units (see Systemd)
+4) Then create 2 systemd units (see Systemd)
 
-4) Todo: The wirering is hardcoded yet.
+5) Todo: The wirering is hardcoded yet.
 
+## Install software
+
+    apt install sox mpd mpc screen git python3 python3-pip
+	pip3 install RPi.GPIO
+	
+upnp is provided by: https://www.lesbonscomptes.com/upmpdcli/index.html	
+	
 ## Systemd
 
 **/etc/systemd/system/radio.service**
@@ -57,6 +66,13 @@ See: [https://superuser.com/questions/473411/redirect-physical-keyboard-input-to
 
 	[Install]
 	WantedBy=multi-user.target
+
+
+Call this to enable services
+
+    systemctl daemon-reload
+	systemctl enable radio
+	systemctl enable my-tty1
 
 ## cards.json
 
